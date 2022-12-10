@@ -1,0 +1,978 @@
+CONNECT SYS/SYS AS SYSDBA;
+
+DROP USER OLEKSANDR CASCADE;
+
+CREATE USER OLEKSANDR IDENTIFIED BY 123;
+
+GRANT CONNECT, RESOURCE TO OLEKSANDR;
+
+CONNECT OLEKSANDR/123;
+
+DROP TABLE DEPT CASCADE CONSTRAINTS;
+
+DROP TABLE EMP CASCADE CONSTRAINTS;
+
+DROP TABLE BONUS CASCADE CONSTRAINTS;
+
+DROP TABLE SALGRADE CASCADE CONSTRAINTS;
+
+DROP TABLE ENROLLMENT CASCADE CONSTRAINTS;
+
+DROP TABLE COURSE_SECTION CASCADE CONSTRAINTS;
+
+DROP TABLE TERM CASCADE CONSTRAINTS;
+
+DROP TABLE COURSE CASCADE CONSTRAINTS;
+
+DROP TABLE STUDENT CASCADE CONSTRAINTS;
+
+DROP TABLE FACULTY CASCADE CONSTRAINTS;
+
+DROP TABLE LOCATION CASCADE CONSTRAINTS;
+
+CREATE TABLE DEPT(
+    DEPTNO NUMBER(2, 0),
+    DNAME VARCHAR2(14),
+    LOC VARCHAR2(13),
+    CONSTRAINT PK_DEPT PRIMARY KEY (DEPTNO)
+);
+
+CREATE TABLE EMP(
+    EMPNO NUMBER(4, 0),
+    ENAME VARCHAR2(10),
+    JOB VARCHAR2(9),
+    MGR NUMBER(4, 0),
+    HIREDATE DATE,
+    SAL NUMBER(7, 2),
+    COMM NUMBER(7, 2),
+    DEPTNO NUMBER(2, 0),
+    CONSTRAINT PK_EMP PRIMARY KEY (EMPNO),
+    CONSTRAINT FK_DEPTNO FOREIGN KEY (DEPTNO) REFERENCES DEPT (DEPTNO)
+);
+
+CREATE TABLE BONUS(
+    ENAME VARCHAR2(10),
+    JOB VARCHAR2(9),
+    SAL NUMBER,
+    COMM NUMBER
+);
+
+CREATE TABLE SALGRADE(
+    GRADE NUMBER,
+    LOSAL NUMBER,
+    HISAL NUMBER
+);
+
+CREATE TABLE LOCATION (
+    LOC_ID NUMBER(6),
+    BLDG_CODE VARCHAR2(10),
+    ROOM VARCHAR2(6),
+    CAPACITY NUMBER(5),
+    CONSTRAINT LOCATION_LOC_ID_PK PRIMARY KEY (LOC_ID)
+);
+
+CREATE TABLE FACULTY (
+    F_ID NUMBER(6),
+    F_LAST VARCHAR2(30),
+    F_FIRST VARCHAR2(30),
+    F_MI CHAR(1),
+    LOC_ID NUMBER(5),
+    F_PHONE VARCHAR2(10),
+    F_RANK VARCHAR2(8),
+    F_PIN NUMBER(4),
+    F_IMAGE BLOB,
+    CONSTRAINT FACULTY_F_ID_PK PRIMARY KEY(F_ID),
+    CONSTRAINT FACULTY_LOC_ID_FK FOREIGN KEY (LOC_ID) REFERENCES LOCATION(LOC_ID)
+);
+
+CREATE TABLE STUDENT (
+    S_ID NUMBER(6),
+    S_LAST VARCHAR2(30),
+    S_FIRST VARCHAR2(30),
+    S_MI CHAR(1),
+    S_ADDRESS VARCHAR2(25),
+    S_CITY VARCHAR2(20),
+    S_STATE CHAR(2),
+    S_ZIP VARCHAR2(10),
+    S_PHONE VARCHAR2(10),
+    S_CLASS CHAR(2),
+    S_DOB DATE,
+    S_PIN NUMBER(4),
+    F_ID NUMBER(6),
+    TIME_ENROLLED VARCHAR2(30),
+    CONSTRAINT STUDENT_S_ID_PK PRIMARY KEY (S_ID),
+    CONSTRAINT STUDENT_F_ID_FK FOREIGN KEY (F_ID) REFERENCES FACULTY(F_ID)
+);
+
+CREATE TABLE TERM (
+    TERM_ID NUMBER(6),
+    TERM_DESC VARCHAR2(20),
+    STATUS VARCHAR2(20),
+    CONSTRAINT TERM_TERM_ID_PK PRIMARY KEY (TERM_ID),
+    CONSTRAINT TERM_STATUS_CC CHECK ((STATUS = 'OPEN') OR (STATUS = 'CLOSED'))
+);
+
+CREATE TABLE COURSE (
+    COURSE_ID NUMBER(6),
+    CALL_ID VARCHAR2(10),
+    COURSE_NAME VARCHAR2(25),
+    CREDITS NUMBER(2),
+    CONSTRAINT COURSE_COURSE_ID_PK PRIMARY KEY(COURSE_ID)
+);
+
+CREATE TABLE COURSE_SECTION (
+    C_SEC_ID NUMBER(6),
+    COURSE_ID NUMBER(6) CONSTRAINT COURSE_SECTION_COURSEID_NN NOT NULL,
+    TERM_ID NUMBER(6) CONSTRAINT COURSE_SECTION_TERMID_NN NOT NULL,
+    SEC_NUM NUMBER(2) CONSTRAINT COURSE_SECTION_SECNUM_NN NOT NULL,
+    F_ID NUMBER(5),
+    C_SEC_DAY VARCHAR2(10),
+    C_SEC_TIME DATE,
+    C_SEC_DURATION VARCHAR2(30),
+    LOC_ID NUMBER(6),
+    MAX_ENRL NUMBER(4) CONSTRAINT COURSE_SECTION_MAXENRL_NN NOT NULL,
+    CONSTRAINT COURSE_SECTION_CSEC_ID_PK PRIMARY KEY (C_SEC_ID),
+    CONSTRAINT COURSE_SECTION_CID_FK FOREIGN KEY (COURSE_ID) REFERENCES COURSE(COURSE_ID),
+    CONSTRAINT COURSE_SECTION_LOC_ID_FK FOREIGN KEY (LOC_ID) REFERENCES LOCATION(LOC_ID),
+    CONSTRAINT COURSE_SECTION_TERMID_FK FOREIGN KEY (TERM_ID) REFERENCES TERM(TERM_ID),
+    CONSTRAINT COURSE_SECTION_FID_FK FOREIGN KEY (F_ID) REFERENCES FACULTY(F_ID)
+);
+
+CREATE TABLE ENROLLMENT (
+    S_ID NUMBER(6),
+    C_SEC_ID NUMBER(6),
+    GRADE CHAR(1),
+    CONSTRAINT ENROLLMENT_PK PRIMARY KEY (S_ID, C_SEC_ID),
+    CONSTRAINT ENROLLMENT_SID_FK FOREIGN KEY (S_ID) REFERENCES STUDENT(S_ID),
+    CONSTRAINT ENROLLMENT_CSECID_FK FOREIGN KEY (C_SEC_ID) REFERENCES COURSE_SECTION (C_SEC_ID)
+);
+
+INSERT INTO DEPT VALUES(
+    10,
+    'ACCOUNTING',
+    'NEW YORK'
+);
+
+INSERT INTO DEPT VALUES(
+    20,
+    'RESEARCH',
+    'DALLAS'
+);
+
+INSERT INTO DEPT VALUES(
+    30,
+    'SALES',
+    'CHICAGO'
+);
+
+INSERT INTO DEPT VALUES(
+    40,
+    'OPERATIONS',
+    'BOSTON'
+);
+
+INSERT INTO EMP VALUES(
+    7839,
+    'KING',
+    'PRESIDENT',
+    NULL,
+    TO_DATE('17-11-1981', 'dd-mm-yyyy'),
+    5000,
+    NULL,
+    10
+);
+
+INSERT INTO EMP VALUES(
+    7698,
+    'BLAKE',
+    'MANAGER',
+    7839,
+    TO_DATE('1-5-1981', 'dd-mm-yyyy'),
+    2850,
+    NULL,
+    30
+);
+
+INSERT INTO EMP VALUES(
+    7782,
+    'CLARK',
+    'MANAGER',
+    7839,
+    TO_DATE('9-6-1981', 'dd-mm-yyyy'),
+    2450,
+    NULL,
+    10
+);
+
+INSERT INTO EMP VALUES(
+    7566,
+    'JONES',
+    'MANAGER',
+    7839,
+    TO_DATE('2-4-1981', 'dd-mm-yyyy'),
+    2975,
+    NULL,
+    20
+);
+
+INSERT INTO EMP VALUES(
+    7788,
+    'SCOTT',
+    'ANALYST',
+    7566,
+    TO_DATE('13-JUL-87', 'dd-mm-rr') - 85,
+    3000,
+    NULL,
+    20
+);
+
+INSERT INTO EMP VALUES(
+    7902,
+    'FORD',
+    'ANALYST',
+    7566,
+    TO_DATE('3-12-1981', 'dd-mm-yyyy'),
+    3000,
+    NULL,
+    20
+);
+
+INSERT INTO EMP VALUES(
+    7369,
+    'SMITH',
+    'CLERK',
+    7902,
+    TO_DATE('17-12-1980', 'dd-mm-yyyy'),
+    800,
+    NULL,
+    20
+);
+
+INSERT INTO EMP VALUES(
+    7499,
+    'ALLEN',
+    'SALESMAN',
+    7698,
+    TO_DATE('20-2-1981', 'dd-mm-yyyy'),
+    1600,
+    300,
+    30
+);
+
+INSERT INTO EMP VALUES(
+    7521,
+    'WARD',
+    'SALESMAN',
+    7698,
+    TO_DATE('22-2-1981', 'dd-mm-yyyy'),
+    1250,
+    500,
+    30
+);
+
+INSERT INTO EMP VALUES(
+    7654,
+    'MARTIN',
+    'SALESMAN',
+    7698,
+    TO_DATE('28-9-1981', 'dd-mm-yyyy'),
+    1250,
+    1400,
+    30
+);
+
+INSERT INTO EMP VALUES(
+    7844,
+    'TURNER',
+    'SALESMAN',
+    7698,
+    TO_DATE('8-9-1981', 'dd-mm-yyyy'),
+    1500,
+    0,
+    30
+);
+
+INSERT INTO EMP VALUES(
+    7876,
+    'ADAMS',
+    'CLERK',
+    7788,
+    TO_DATE('13-JUL-87', 'dd-mm-rr') - 51,
+    1100,
+    NULL,
+    20
+);
+
+INSERT INTO EMP VALUES(
+    7900,
+    'JAMES',
+    'CLERK',
+    7698,
+    TO_DATE('3-12-1981', 'dd-mm-yyyy'),
+    950,
+    NULL,
+    30
+);
+
+INSERT INTO EMP VALUES(
+    7934,
+    'MILLER',
+    'CLERK',
+    7782,
+    TO_DATE('23-1-1982', 'dd-mm-yyyy'),
+    1300,
+    NULL,
+    10
+);
+
+INSERT INTO SALGRADE VALUES (
+    1,
+    700,
+    1200
+);
+
+INSERT INTO SALGRADE VALUES (
+    2,
+    1201,
+    1400
+);
+
+INSERT INTO SALGRADE VALUES (
+    3,
+    1401,
+    2000
+);
+
+INSERT INTO SALGRADE VALUES (
+    4,
+    2001,
+    3000
+);
+
+INSERT INTO SALGRADE VALUES (
+    5,
+    3001,
+    9999
+);
+
+---- inserting into LOCATION table
+INSERT INTO LOCATION VALUES (
+    1,
+    'CR',
+    '101',
+    150
+);
+
+INSERT INTO LOCATION VALUES (
+    2,
+    'CR',
+    '202',
+    40
+);
+
+INSERT INTO LOCATION VALUES (
+    3,
+    'CR',
+    '103',
+    35
+);
+
+INSERT INTO LOCATION VALUES (
+    4,
+    'CR',
+    '105',
+    35
+);
+
+INSERT INTO LOCATION VALUES (
+    5,
+    'BUS',
+    '105',
+    42
+);
+
+INSERT INTO LOCATION VALUES (
+    6,
+    'BUS',
+    '404',
+    35
+);
+
+INSERT INTO LOCATION VALUES (
+    7,
+    'BUS',
+    '421',
+    35
+);
+
+INSERT INTO LOCATION VALUES (
+    8,
+    'BUS',
+    '211',
+    55
+);
+
+INSERT INTO LOCATION VALUES (
+    9,
+    'BUS',
+    '424',
+    1
+);
+
+INSERT INTO LOCATION VALUES (
+    10,
+    'BUS',
+    '402',
+    1
+);
+
+INSERT INTO LOCATION VALUES (
+    11,
+    'BUS',
+    '433',
+    1
+);
+
+INSERT INTO LOCATION VALUES (
+    12,
+    'LIB',
+    '217',
+    2
+);
+
+INSERT INTO LOCATION VALUES (
+    13,
+    'LIB',
+    '222',
+    1
+);
+
+--- inserting records into FACULTY
+INSERT INTO FACULTY VALUES (
+    1,
+    'Cox',
+    'Kim',
+    'J',
+    9,
+    '7155551234',
+    'ASSO',
+    1181,
+    EMPTY_BLOB()
+);
+
+INSERT INTO FACULTY VALUES (
+    2,
+    'Blanchard',
+    'John',
+    'R',
+    10,
+    '7155559087',
+    'FULL',
+    1075,
+    EMPTY_BLOB()
+);
+
+INSERT INTO FACULTY VALUES (
+    3,
+    'Williams',
+    'Jerry',
+    'F',
+    12,
+    '7155555412',
+    'ASST',
+    8531,
+    EMPTY_BLOB()
+);
+
+INSERT INTO FACULTY VALUES (
+    4,
+    'Sheng',
+    'Laura',
+    'M',
+    11,
+    '7155556409',
+    'INST',
+    1690,
+    EMPTY_BLOB()
+);
+
+INSERT INTO FACULTY VALUES (
+    5,
+    'Brown',
+    'Philip',
+    'E',
+    13,
+    '7155556082',
+    'ASSO',
+    9899,
+    EMPTY_BLOB()
+);
+
+--- inserting records into STUDENT
+INSERT INTO STUDENT VALUES (
+    1,
+    'Miller',
+    'Sarah',
+    'M',
+    '144 Windridge Blvd.',
+    'Eau Claire',
+    'WI',
+    '54703',
+    '7155559876',
+    'SR',
+    TO_DATE('07/14/1985', 'MM/DD/YYYY'),
+    8891,
+    1,
+    '3-2'
+);
+
+INSERT INTO STUDENT VALUES (
+    2,
+    'Umato',
+    'Brian',
+    'D',
+    '454 St. John''s Place',
+    'Eau Claire',
+    'WI',
+    '54702',
+    '7155552345',
+    'SR',
+    TO_DATE('08/19/1985', 'MM/DD/YYYY'),
+    1230,
+    1,
+    '4-2'
+);
+
+INSERT INTO STUDENT VALUES (
+    3,
+    'Black',
+    'Daniel',
+    NULL,
+    '8921 Circle Drive',
+    'Bloomer',
+    'WI',
+    '54715',
+    '7155553907',
+    'JR',
+    TO_DATE('10/10/1982', 'MM/DD/YYYY'),
+    1613,
+    1,
+    '3-0'
+);
+
+INSERT INTO STUDENT VALUES (
+    4,
+    'Mobley',
+    'Amanda',
+    'J',
+    '1716 Summit St.',
+    'Eau Claire',
+    'WI',
+    '54703',
+    '7155556902',
+    'SO',
+    TO_DATE('09/24/1986', 'MM/DD/YYYY'),
+    1841,
+    2,
+    '2-2'
+);
+
+INSERT INTO STUDENT VALUES (
+    5,
+    'Sanchez',
+    'Ruben',
+    'R',
+    '1780 Samantha Court',
+    'Eau Claire',
+    'WI',
+    '54701',
+    '7155558899',
+    'SO',
+    TO_DATE('11/20/1986', 'MM/DD/YYYY'),
+    4420,
+    4,
+    '1-11'
+);
+
+INSERT INTO STUDENT VALUES (
+    6,
+    'Connoly',
+    'Michael',
+    'S',
+    '1818 Silver Street',
+    'Elk Mound',
+    'WI',
+    '54712',
+    '7155554944',
+    'FR',
+    TO_DATE('12/4/1986', 'MM/DD/YYYY'),
+    9188,
+    3,
+    '0-4'
+);
+
+--- inserting records into TERM
+INSERT INTO TERM VALUES (
+    1,
+    'Fall 2005',
+    'CLOSED'
+);
+
+INSERT INTO TERM VALUES (
+    2,
+    'Spring 2006',
+    'CLOSED'
+);
+
+INSERT INTO TERM VALUES (
+    3,
+    'Summer 2006',
+    'CLOSED'
+);
+
+INSERT INTO TERM VALUES (
+    4,
+    'Fall 2006',
+    'CLOSED'
+);
+
+INSERT INTO TERM VALUES (
+    5,
+    'Spring 2007',
+    'CLOSED'
+);
+
+INSERT INTO TERM VALUES (
+    6,
+    'Summer 2007',
+    'OPEN'
+);
+
+--- inserting records into COURSE
+INSERT INTO COURSE VALUES (
+    1,
+    'MIS 101',
+    'Intro. to Info. Systems',
+    3
+);
+
+INSERT INTO COURSE VALUES (
+    2,
+    'MIS 301',
+    'Systems Analysis',
+    3
+);
+
+INSERT INTO COURSE VALUES (
+    3,
+    'MIS 441',
+    'Database Management',
+    3
+);
+
+INSERT INTO COURSE VALUES (
+    4,
+    'CS 155',
+    'Programming in C++',
+    3
+);
+
+INSERT INTO COURSE VALUES (
+    5,
+    'MIS 451',
+    'Web-Based Systems',
+    3
+);
+
+--- inserting records into COURSE_SECTION
+INSERT INTO COURSE_SECTION VALUES (
+    1,
+    1,
+    4,
+    1,
+    2,
+    'MWF',
+    TO_DATE('10:00 AM', 'HH:MI AM'),
+    '0 00:00:50.00',
+    1,
+    140
+);
+
+INSERT INTO COURSE_SECTION VALUES (
+    2,
+    1,
+    4,
+    2,
+    3,
+    'TR',
+    TO_DATE('09:30 AM', 'HH:MI AM'),
+    '0 00:01:15.00',
+    7,
+    35
+);
+
+INSERT INTO COURSE_SECTION VALUES (
+    3,
+    1,
+    4,
+    3,
+    3,
+    'MWF',
+    TO_DATE('08:00 AM', 'HH:MI AM'),
+    '0 00:00:50.00',
+    2,
+    35
+);
+
+INSERT INTO COURSE_SECTION VALUES (
+    4,
+    2,
+    4,
+    1,
+    4,
+    'TR',
+    TO_DATE('11:00 AM', 'HH:MI AM'),
+    '0 00:01:15.00',
+    6,
+    35
+);
+
+INSERT INTO COURSE_SECTION VALUES (
+    5,
+    2,
+    5,
+    2,
+    4,
+    'TR',
+    TO_DATE('02:00 PM', 'HH:MI PM'),
+    '0 00:01:15.00',
+    6,
+    35
+);
+
+INSERT INTO COURSE_SECTION VALUES (
+    6,
+    3,
+    5,
+    1,
+    1,
+    'MWF',
+    TO_DATE('09:00 AM', 'HH:MI AM'),
+    '0 00:00:50.00',
+    5,
+    30
+);
+
+INSERT INTO COURSE_SECTION VALUES (
+    7,
+    3,
+    5,
+    2,
+    1,
+    'MWF',
+    TO_DATE('10:00 AM', 'HH:MI AM'),
+    '0 00:00:50.00',
+    5,
+    30
+);
+
+INSERT INTO COURSE_SECTION VALUES (
+    8,
+    4,
+    5,
+    1,
+    5,
+    'TR',
+    TO_DATE('08:00 AM', 'HH:MI AM'),
+    '0 00:01:15.00',
+    3,
+    35
+);
+
+INSERT INTO COURSE_SECTION VALUES (
+    9,
+    5,
+    5,
+    1,
+    2,
+    'MWF',
+    TO_DATE('02:00 PM', 'HH:MI PM'),
+    '0 00:00:50.00',
+    5,
+    35
+);
+
+INSERT INTO COURSE_SECTION VALUES (
+    10,
+    5,
+    5,
+    2,
+    2,
+    'MWF',
+    TO_DATE('03:00 PM', 'HH:MI PM'),
+    '0 00:00:50.00',
+    5,
+    35
+);
+
+INSERT INTO COURSE_SECTION VALUES (
+    11,
+    1,
+    6,
+    1,
+    1,
+    'MTWRF',
+    TO_DATE('08:00 AM', 'HH:MI AM'),
+    '0 00:01:30.00',
+    1,
+    50
+);
+
+INSERT INTO COURSE_SECTION VALUES (
+    12,
+    2,
+    6,
+    1,
+    2,
+    'MTWRF',
+    TO_DATE('08:00 AM', 'HH:MI AM'),
+    '0 00:01:30.00',
+    6,
+    35
+);
+
+INSERT INTO COURSE_SECTION VALUES (
+    13,
+    3,
+    6,
+    1,
+    3,
+    'MTWRF',
+    TO_DATE('09:00 AM', 'HH:MI AM'),
+    '0 00:01:30.00',
+    5,
+    35
+);
+
+--- inserting records into ENROLLMENT
+INSERT INTO ENROLLMENT VALUES (
+    1,
+    1,
+    'A'
+);
+
+INSERT INTO ENROLLMENT VALUES (
+    1,
+    4,
+    'A'
+);
+
+INSERT INTO ENROLLMENT VALUES (
+    1,
+    6,
+    'B'
+);
+
+INSERT INTO ENROLLMENT VALUES (
+    1,
+    9,
+    'B'
+);
+
+INSERT INTO ENROLLMENT VALUES (
+    2,
+    1,
+    'C'
+);
+
+INSERT INTO ENROLLMENT VALUES (
+    2,
+    5,
+    'B'
+);
+
+INSERT INTO ENROLLMENT VALUES (
+    2,
+    6,
+    'A'
+);
+
+INSERT INTO ENROLLMENT VALUES (
+    2,
+    9,
+    'B'
+);
+
+INSERT INTO ENROLLMENT VALUES (
+    3,
+    1,
+    'C'
+);
+
+INSERT INTO ENROLLMENT VALUES (
+    3,
+    12,
+    NULL
+);
+
+INSERT INTO ENROLLMENT VALUES (
+    3,
+    13,
+    NULL
+);
+
+INSERT INTO ENROLLMENT VALUES (
+    4,
+    11,
+    NULL
+);
+
+INSERT INTO ENROLLMENT VALUES (
+    4,
+    12,
+    NULL
+);
+
+INSERT INTO ENROLLMENT VALUES (
+    5,
+    1,
+    'B'
+);
+
+INSERT INTO ENROLLMENT VALUES (
+    5,
+    5,
+    'C'
+);
+
+INSERT INTO ENROLLMENT VALUES (
+    5,
+    9,
+    'C'
+);
+
+INSERT INTO ENROLLMENT VALUES (
+    5,
+    11,
+    NULL
+);
+
+INSERT INTO ENROLLMENT VALUES (
+    5,
+    13,
+    NULL
+);
+
+INSERT INTO ENROLLMENT VALUES (
+    6,
+    11,
+    NULL
+);
+
+INSERT INTO ENROLLMENT VALUES (
+    6,
+    12,
+    NULL
+);
+
+COMMIT;
